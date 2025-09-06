@@ -1,0 +1,11 @@
+.{
+    .name = .sudoku,
+    .version = "0.0.0",
+    .fingerprint = 0x5cef6ae5443d2af3, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.14.1",
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
