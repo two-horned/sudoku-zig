@@ -20,21 +20,21 @@ pub fn main() !void {
 
     var game = lib.Game{};
     try stdout.print("Hello, world, this my game {}.\n", .{game});
-    try stdout_bw.flush(); // Don't forget to flush!
+    try stdout_bw.flush();
     var evaluater = lib.Evaluater{};
 
     game.choose(0, 0);
     try stdout.print("I have chosen...\n", .{});
     try stdout.print("Now this my game {}.\n", .{game});
-    try stdout_bw.flush(); // Don't forget to flush!
+    try stdout_bw.flush();
 
     evaluater.eval(&game) catch try stderr.print("Game is unsolvable.\n", .{});
     try stderr_bw.flush();
 
     try stdout.print("Finally, this my game {}.\n", .{game});
-    try stdout_bw.flush(); // Don't forget to flush!
+    try stdout_bw.flush();
 
     const read = timer.read();
     try stdout.print("Time elapsed is {}us.\n", .{read / std.time.ns_per_us});
-    try stdout_bw.flush(); // Don't forget to flush!
+    try stdout_bw.flush();
 }

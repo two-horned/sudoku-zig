@@ -110,6 +110,7 @@ pub const Evaluater = struct {
                     const idx = game.choose_alt(vti, c);
                     candidates &= candidates - 1;
                     if (candidates == 0) {
+                        // print("Yes, pruned.\n", .{});
                         self.buffer[level].show_kind = .failed;
                     } else {
                         self.buffer[level].show_kind.pickval.@"1" = candidates;
@@ -118,6 +119,7 @@ pub const Evaluater = struct {
                     self.buffer[level] = .{ .fallback = @intCast(idx), .show_kind = game.showbestfree() };
                 },
             }
+            print("Last idx chosen was: {}\n", .{e.fallback});
         }
     }
 };
@@ -137,7 +139,7 @@ pub const Game = struct {
     value_masks: [9][3]u16 = .{.{0x1FF} ** 3} ** 9,
 
     pub fn choose(self: *Game, idx: usize, val: usize) void {
-        self.board[idx] = 1 + @as(u8, val);
+        self.board[idx] = 1 + @as(u8, @intCast(val));
         self.update_masks(idx, val);
     }
 
