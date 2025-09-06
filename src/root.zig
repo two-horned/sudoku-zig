@@ -212,15 +212,16 @@ pub const Game = struct {
         return self.house_masks[0][i] & self.house_masks[1][j] & self.house_masks[2][k];
     }
 
-    fn pos_indices(self: *const Game, ht: usize, id: usize) u16 {
+    fn pos_indices(self: *const Game, comptime ht: usize, id: usize) u16 {
         const hi, const val, _, _ = lookup[id];
         const rwhi, const clhi = mini_lookup[hi];
 
         return self.occupied[ht][hi] &
             switch (ht) {
-                0 => self.value_masks[val][1] & get_ray_r(self.value_masks[val][2], rwhi),
-                1 => self.value_masks[val][0] & get_ray_c(self.value_masks[val][2], rwhi),
-                else => get_ray_r(self.value_masks[val][0], rwhi) & get_yar_r(self.value_masks[val][1], clhi),
+                inline 0 => self.value_masks[val][1] & get_ray_r(self.value_masks[val][2], rwhi),
+                inline 1 => self.value_masks[val][0] & get_ray_c(self.value_masks[val][2], rwhi),
+                inline 2 => get_ray_r(self.value_masks[val][0], rwhi) & get_yar_r(self.value_masks[val][1], clhi),
+                else => unreachable,
             };
     }
 };
