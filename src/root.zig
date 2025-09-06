@@ -69,8 +69,6 @@ fn get_yar_r(mask: u16, i: usize) u16 {
 
 const EvalError = error{Unsolvable};
 
-const print = @import("std").debug.print;
-
 pub const Evaluater = struct {
     const Entry = struct { fallback: u8, show_kind: ShowKinds };
     buffer: [81]Entry = undefined,
@@ -110,7 +108,6 @@ pub const Evaluater = struct {
                     const idx = game.choose_alt(vti, c);
                     candidates &= candidates - 1;
                     if (candidates == 0) {
-                        // print("Yes, pruned.\n", .{});
                         self.buffer[level].show_kind = .failed;
                     } else {
                         self.buffer[level].show_kind.pickval.@"1" = candidates;
@@ -119,7 +116,6 @@ pub const Evaluater = struct {
                     self.buffer[level] = .{ .fallback = @intCast(idx), .show_kind = game.showbestfree() };
                 },
             }
-            print("Last idx chosen was: {}\n", .{e.fallback});
         }
     }
 };
@@ -139,7 +135,7 @@ pub const Game = struct {
     value_masks: [9][3]u16 = .{.{0x1FF} ** 3} ** 9,
 
     pub fn choose(self: *Game, idx: usize, val: usize) void {
-        self.board[idx] = 1 + @as(u8, @intCast(val));
+        self.board[idx] = @intCast(val);
         self.update_masks(idx, val);
     }
 
@@ -152,7 +148,7 @@ pub const Game = struct {
     }
 
     pub fn unchoose(self: *Game, idx: usize) void {
-        const val = self.board[idx] - 1;
+        const val = self.board[idx];
         self.board[idx] = 0;
         self.update_masks(idx, val);
     }
@@ -213,7 +209,7 @@ pub const Game = struct {
 
     fn candidates(self: *const Game, idx: usize) u16 {
         const i, const j, const k, _ = lookup[idx];
-        return self.house_masks[0][i] & self.house_masks[0][j] & self.house_masks[0][k];
+        return self.house_masks[0][i] & self.house_masks[1][j] & self.house_masks[2][k];
     }
 
     fn pos_indices(self: *const Game, ht: usize, id: usize) u16 {
