@@ -172,9 +172,8 @@ pub const Game = struct {
 
         {
             var f = self.frees[3];
-            while (f != 0) {
+            while (f != 0) : (f &= f - 1) {
                 const i = @ctz(f);
-                f &= f - 1;
                 const c = self.candidates(i);
                 switch (@popCount(c)) {
                     0 => return .failed,
@@ -189,9 +188,8 @@ pub const Game = struct {
 
         inline for (0..3) |t| {
             var f = self.frees[t];
-            while (f != 0) {
+            while (f != 0) : (f &= f - 1) {
                 const i = @ctz(f);
-                f &= f - 1;
                 const c = self.pos_indices(t, i);
                 switch (@popCount(c)) {
                     0 => return .failed,
