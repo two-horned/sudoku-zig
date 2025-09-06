@@ -128,7 +128,7 @@ const ShowKinds = union(enum) {
 };
 
 pub const Game = struct {
-    board: [81]u8 = .{0} ** 81,
+    board: [81]u8 = undefined,
     frees: [4]u128 = .{0x1FFFFFFFFFFFFFFFFFFFF} ** 4,
     occupied: [3][9]u16 = .{.{0x1FF} ** 9} ** 3,
     house_masks: [3][9]u16 = .{.{0x1FF} ** 9} ** 3,
@@ -216,9 +216,9 @@ pub const Game = struct {
 
         return self.occupied[ht][hi] &
             switch (ht) {
-                inline 0 => self.value_masks[val][1] & get_ray_r(self.value_masks[val][2], rwhi),
-                inline 1 => self.value_masks[val][0] & get_ray_c(self.value_masks[val][2], rwhi),
-                inline 2 => get_ray_r(self.value_masks[val][0], rwhi) & get_yar_r(self.value_masks[val][1], clhi),
+                0 => self.value_masks[val][1] & get_ray_r(self.value_masks[val][2], rwhi),
+                1 => self.value_masks[val][0] & get_ray_c(self.value_masks[val][2], rwhi),
+                2 => get_ray_r(self.value_masks[val][0], rwhi) & get_yar_r(self.value_masks[val][1], clhi),
                 else => unreachable,
             };
     }

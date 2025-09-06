@@ -55,9 +55,7 @@ pub fn main() !void {
                 try stdout.print("Solution:    {s}\n", .{game.board});
             } else |_| {
                 try stdout.print("Game cannot be solved.\n", .{});
-                try stdout_bw.flush();
             }
-
             const read = mini_timer.read() / std.time.ns_per_us;
             try stdout.print("Time needed: {}µs.\n\n", .{read});
             try stdout_bw.flush();
