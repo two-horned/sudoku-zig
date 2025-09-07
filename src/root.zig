@@ -198,8 +198,8 @@ pub const Game = struct {
             while (f != 0) : (f &= f - 1) {
                 const i = @ctz(f);
                 const c = self.candidates(i);
+                if (c == 0) return .failed;
                 switch (@popCount(c)) {
-                    0 => return .failed,
                     1 => return ShowKinds{ .pickidx = .{ i, c } },
                     else => |w| if (w < best_weight) {
                         best_weight = w;
@@ -214,8 +214,8 @@ pub const Game = struct {
             while (f != 0) : (f &= f - 1) {
                 const i = @ctz(f);
                 const c = self.pos_indices(t, i);
+                if (c == 0) return .failed;
                 switch (@popCount(c)) {
-                    0 => return .failed,
                     1 => return ShowKinds{ .pickval = .{ .{ t, i }, c } },
                     else => |w| if (w < best_weight) {
                         best_weight = w;
