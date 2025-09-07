@@ -1,3 +1,26 @@
+fn FastUInt(comptime width: usize) type {
+    const bitsOfUsize = @bitSizeOf(usize);
+    if (width <= bitsOfUsize) {
+        return usize;
+    } else {
+        const ceilLog2 = bitsOfUsize - @clz(width);
+        return switch (ceilLog2) {
+            0 => u1,
+            1 => u2,
+            2 => u4,
+            3 => u8,
+            4 => u16,
+            5 => u32,
+            6 => u64,
+            7 => u128,
+            8 => u256,
+            else => @compileError("No fast integer type found."),
+        };
+    }
+}
+
+const FastU9 = FastUInt(9);
+
 const lookup: [81][4]u8 = b: {
     var tmp: [81][4]u8 = undefined;
     for (0..9) |i| {
@@ -23,8 +46,8 @@ const rev_lookup: [3][9][9]u8 = b: {
     break :b tmp;
 };
 
-const ray_maker: [8]u16 = b: {
-    var tmp: [8]u16 = .{0x1FF} ** 8;
+const ray_maker: [8]FastU9 = b: {
+    var tmp: [8]FastU9 = .{0x1FF} ** 8;
     for (0..8) |i| {
         var f = i;
         while (f != 0) {
@@ -36,8 +59,8 @@ const ray_maker: [8]u16 = b: {
     break :b tmp;
 };
 
-const yar_maker: [8]u16 = b: {
-    var tmp: [8]u16 = .{0x1FF} ** 8;
+const yar_maker: [8]FastU9 = b: {
+    var tmp: [8]FastU9 = .{0x1FF} ** 8;
     for (0..8) |i| {
         tmp[7 - i] ^= i ^ (i << 3) ^ (i << 6);
     }
@@ -52,17 +75,17 @@ const mini_lookup: [9][2]u8 = b: {
     break :b tmp;
 };
 
-fn get_ray_r(mask: u16, i: usize) u16 {
+fn get_ray_r(mask: FastU9, i: usize) FastU9 {
     const j = 0b111 & mask >> @intCast(3 * i);
     return ray_maker[j];
 }
 
-fn get_ray_c(mask: u16, i: usize) u16 {
+fn get_ray_c(mask: FastU9, i: usize) FastU9 {
     const j = 0b111 & 0b10101 * (0b100100100 & mask << @intCast(2 - i)) >> 6;
     return ray_maker[j];
 }
 
-fn get_yar_r(mask: u16, i: usize) u16 {
+fn get_yar_r(mask: FastU9, i: usize) FastU9 {
     const j = 0b111 & mask >> @intCast(3 * i);
     return yar_maker[j];
 }
@@ -121,8 +144,8 @@ pub const Evaluater = struct {
 };
 
 const ShowKinds = union(enum) {
-    pickidx: struct { u8, u16 },
-    pickval: struct { [2]u8, u16 },
+    pickidx: struct { u8, FastU9 },
+    pickval: struct { [2]u8, FastU9 },
     failed,
     solved,
 };
@@ -130,9 +153,9 @@ const ShowKinds = union(enum) {
 pub const Game = struct {
     board: [81]u8 = undefined,
     frees: [4]u128 = .{0x1FFFFFFFFFFFFFFFFFFFF} ** 4,
-    occupied: [3][9]u16 = .{.{0x1FF} ** 9} ** 3,
-    house_masks: [3][9]u16 = .{.{0x1FF} ** 9} ** 3,
-    value_masks: [9][3]u16 = .{.{0x1FF} ** 3} ** 9,
+    occupied: [3][9]FastU9 = .{.{0x1FF} ** 9} ** 3,
+    house_masks: [3][9]FastU9 = .{.{0x1FF} ** 9} ** 3,
+    value_masks: [9][3]FastU9 = .{.{0x1FF} ** 3} ** 9,
 
     pub fn choose(self: *Game, idx: usize, val: usize) void {
         self.board[idx] = @intCast(val);
@@ -155,14 +178,14 @@ pub const Game = struct {
 
     fn update_masks(self: *Game, idx: usize, val: usize) void {
         self.frees[3] ^= @as(u128, 1) << @intCast(idx);
-        const mask = @as(u16, 1) << @intCast(val);
+        const mask = @as(FastU9, 1) << @intCast(val);
         const houses = lookup[idx];
         inline for (0..3) |ht| {
             const hi = houses[ht];
             self.frees[ht] ^= @as(u128, 1) << @intCast(hi * 9 + val);
             self.house_masks[ht][hi] ^= mask;
-            self.occupied[ht][hi] ^= @as(u16, 1) << @intCast(houses[ht ^ 1]);
-            self.value_masks[val][ht] ^= @as(u16, 1) << @intCast(hi);
+            self.occupied[ht][hi] ^= @as(FastU9, 1) << @intCast(houses[ht ^ 1]);
+            self.value_masks[val][ht] ^= @as(FastU9, 1) << @intCast(hi);
         }
     }
 
@@ -205,12 +228,12 @@ pub const Game = struct {
         return best_value;
     }
 
-    fn candidates(self: *const Game, idx: usize) u16 {
+    fn candidates(self: *const Game, idx: usize) FastU9 {
         const i, const j, const k, _ = lookup[idx];
         return self.house_masks[0][i] & self.house_masks[1][j] & self.house_masks[2][k];
     }
 
-    fn pos_indices(self: *const Game, comptime ht: usize, id: usize) u16 {
+    fn pos_indices(self: *const Game, comptime ht: usize, id: usize) FastU9 {
         const hi, const val, _, _ = lookup[id];
         const rwhi, const clhi = mini_lookup[hi];
 
