@@ -194,12 +194,15 @@ pub const Game = struct {
         var best_weight: usize = 10;
 
         {
+            const cands_all = self.candidates_all();
+            const popcs_all = @popCount(cands_all);
+
             var f = self.frees[3];
             while (f != 0) : (f &= f - 1) {
                 const i = @ctz(f);
-                const c = self.candidates(i);
-                if (c == 0) return .failed;
-                switch (@popCount(c)) {
+                const c = cands_all[i];
+                switch (popcs_all[i]) {
+                    0 => return .failed,
                     1 => return ShowKinds{ .pickidx = .{ i, c } },
                     else => |w| if (w < best_weight) {
                         best_weight = w;
@@ -231,6 +234,44 @@ pub const Game = struct {
     fn candidates(self: *const Game, idx: usize) FastU9 {
         const i, const j, const k, _ = lookup[idx];
         return self.house_masks[0][i] & self.house_masks[1][j] & self.house_masks[2][k];
+    }
+
+    fn candidates_all(self: *const Game) @Vector(81, FastU9) {
+        const row_vec: @Vector(81, FastU9) = b: {
+            const a = self.house_masks[0];
+            var tmp: [81]FastU9 = undefined;
+            inline for (0..9) |i| {
+                inline for (0..9) |j| {
+                    tmp[i * 9 + j] = a[i];
+                }
+            }
+            break :b tmp;
+        };
+        const col_vec: @Vector(81, FastU9) = b: {
+            const a = self.house_masks[1];
+            var tmp: [81]FastU9 = undefined;
+            inline for (0..9) |i| {
+                inline for (0..9) |j| {
+                    tmp[i * 9 + j] = a[j];
+                }
+            }
+            break :b tmp;
+        };
+        const sqr_vec: @Vector(81, FastU9) = b: {
+            const a = self.house_masks[2];
+            var tmp: [81]FastU9 = undefined;
+            inline for (0..3) |i| {
+                inline for (0..3) |j| {
+                    inline for (0..3) |k| {
+                        inline for (0..3) |l| {
+                            tmp[i * 27 + j * 3 + k * 9 + l] = a[i * 3 + j];
+                        }
+                    }
+                }
+            }
+            break :b tmp;
+        };
+        return row_vec & col_vec & sqr_vec;
     }
 
     fn pos_indices(self: *const Game, comptime ht: usize, id: usize) FastU9 {
