@@ -19,7 +19,8 @@ fn FastUInt(comptime width: usize) type {
     }
 }
 
-const FastU9 = FastUInt(9);
+// const FastU9 = FastUInt(9);
+const FastU9 = u16;
 
 const lookup: [81][4]u8 = b: {
     var tmp: [81][4]u8 = undefined;
@@ -43,6 +44,31 @@ const rev_lookup: [3][9][9]u8 = b: {
         tmp[1][j][i] = idx;
         tmp[2][k][l] = idx;
     }
+    break :b tmp;
+};
+
+const vec_masks: [9][3][9]@Vector(81, FastU9) = b: {
+    var tmp: [9][3][9][81]FastU9 = .{.{.{.{0} ** 81} ** 9} ** 3} ** 9;
+    for (0..9) |val| {
+        const mask = 1 << val;
+        for (0..9) |i| {
+            for (0..9) |j| {
+                tmp[val][0][i][i * 9 + j] = mask;
+                tmp[val][1][j][i * 9 + j] = mask;
+            }
+        }
+        @setEvalBranchQuota(2000);
+        for (0..3) |i| {
+            for (0..3) |j| {
+                for (0..3) |k| {
+                    for (0..3) |l| {
+                        tmp[val][2][i * 3 + j][i * 27 + j * 3 + k * 9 + l] = mask;
+                    }
+                }
+            }
+        }
+    }
+
     break :b tmp;
 };
 
@@ -154,7 +180,7 @@ pub const Game = struct {
     board: [81]u8 = undefined,
     frees: [4]u128 = .{0x1FFFFFFFFFFFFFFFFFFFF} ** 4,
     occupied: [3][9]FastU9 = .{.{0x1FF} ** 9} ** 3,
-    house_masks: [3][9]FastU9 = .{.{0x1FF} ** 9} ** 3,
+    house_masks: [3]@Vector(81, FastU9) = .{.{0x1FF} ** 81} ** 3,
     value_masks: [9][3]FastU9 = .{.{0x1FF} ** 3} ** 9,
 
     pub fn choose(self: *Game, idx: usize, val: usize) void {
@@ -178,12 +204,11 @@ pub const Game = struct {
 
     fn update_masks(self: *Game, idx: usize, val: usize) void {
         self.frees[3] ^= @as(u128, 1) << @intCast(idx);
-        const mask = @as(FastU9, 1) << @intCast(val);
         const houses = lookup[idx];
         inline for (0..3) |ht| {
             const hi = houses[ht];
             self.frees[ht] ^= @as(u128, 1) << @intCast(hi * 9 + val);
-            self.house_masks[ht][hi] ^= mask;
+            self.house_masks[ht] ^= vec_masks[val][ht][hi];
             self.occupied[ht][hi] ^= @as(FastU9, 1) << @intCast(houses[ht ^ 1]);
             self.value_masks[val][ht] ^= @as(FastU9, 1) << @intCast(hi);
         }
@@ -194,7 +219,7 @@ pub const Game = struct {
         var best_weight: usize = 10;
 
         {
-            const cands_all = self.candidates_all();
+            const cands_all = self.candidates();
             const popcs_all = @popCount(cands_all);
 
             var f = self.frees[3];
@@ -231,47 +256,8 @@ pub const Game = struct {
         return best_value;
     }
 
-    fn candidates(self: *const Game, idx: usize) FastU9 {
-        const i, const j, const k, _ = lookup[idx];
-        return self.house_masks[0][i] & self.house_masks[1][j] & self.house_masks[2][k];
-    }
-
-    fn candidates_all(self: *const Game) @Vector(81, FastU9) {
-        const row_vec: @Vector(81, FastU9) = b: {
-            const a = self.house_masks[0];
-            var tmp: [81]FastU9 = undefined;
-            inline for (0..9) |i| {
-                inline for (0..9) |j| {
-                    tmp[i * 9 + j] = a[i];
-                }
-            }
-            break :b tmp;
-        };
-        const col_vec: @Vector(81, FastU9) = b: {
-            const a = self.house_masks[1];
-            var tmp: [81]FastU9 = undefined;
-            inline for (0..9) |i| {
-                inline for (0..9) |j| {
-                    tmp[i * 9 + j] = a[j];
-                }
-            }
-            break :b tmp;
-        };
-        const sqr_vec: @Vector(81, FastU9) = b: {
-            const a = self.house_masks[2];
-            var tmp: [81]FastU9 = undefined;
-            inline for (0..3) |i| {
-                inline for (0..3) |j| {
-                    inline for (0..3) |k| {
-                        inline for (0..3) |l| {
-                            tmp[i * 27 + j * 3 + k * 9 + l] = a[i * 3 + j];
-                        }
-                    }
-                }
-            }
-            break :b tmp;
-        };
-        return row_vec & col_vec & sqr_vec;
+    fn candidates(self: *const Game) @Vector(81, FastU9) {
+        return self.house_masks[0] & self.house_masks[1] & self.house_masks[2];
     }
 
     fn pos_indices(self: *const Game, comptime ht: usize, id: usize) FastU9 {
