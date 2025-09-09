@@ -162,7 +162,7 @@ pub const Game = struct {
         self.update_masks(idx, val);
     }
 
-    pub fn choose_alt(self: *Game, vht: [2]u8, idx: usize) usize {
+    fn choose_alt(self: *Game, vht: [2]u8, idx: usize) usize {
         const ht, const id = vht;
         const hi, const val, _, _ = lookup[id];
         const true_idx = rev_lookup[ht][hi][idx];
@@ -170,7 +170,7 @@ pub const Game = struct {
         return true_idx;
     }
 
-    pub fn unchoose(self: *Game, idx: usize) void {
+    fn unchoose(self: *Game, idx: usize) void {
         const val = self.board[idx];
         self.board[idx] = 0;
         self.update_masks(idx, val);
@@ -189,7 +189,7 @@ pub const Game = struct {
         }
     }
 
-    pub fn showbestfree(self: *const Game) ShowKinds {
+    fn showbestfree(self: *const Game) ShowKinds {
         var best_value: ShowKinds = .solved;
         var best_weight: usize = 10;
 
