@@ -23,13 +23,17 @@ const FastU9 = FastUInt(9);
 
 const lookup: [81][4]u8 = b: {
     var tmp: [81][4]u8 = undefined;
-    for (0..9) |i| {
-        const nine_i = i * 9;
-        const sqr_row = i - i % 3;
-        for (0..9) |j| {
-            const idx = nine_i + j;
-            const sqr = sqr_row + j / 3;
-            tmp[idx] = .{ i, j, sqr, i % 3 * 3 + j % 3 };
+    for (0..3) |i| {
+        for (0..3) |j| {
+            for (0..3) |k| {
+                for (0..3) |l| {
+                    const row = i * 3 + k;
+                    const col = j * 3 + l;
+                    const sqr = i * 3 + j;
+                    const ant = k * 3 + l;
+                    tmp[i * 27 + j * 3 + k * 9 + l] = .{ row, col, sqr, ant };
+                }
+            }
         }
     }
     break :b tmp;
