@@ -14,8 +14,6 @@ pub fn main() !void {
     const stderr = stderr_bw.writer();
     const stdin = stdin_br.reader();
 
-    var evaluater = lib.Evaluater{};
-
     var buf: [82]u8 = undefined;
 
     try stdout.print("Enter each sudoku puzzle as one line. Press Ctr-D to quit.\n", .{});
@@ -48,7 +46,7 @@ pub fn main() !void {
                     },
                 }
             }
-            if (evaluater.eval(&game)) |_| {
+            if (lib.eval(&game)) |_| {
                 inline for (0..81) |i| {
                     game.board[i] += '1';
                 }

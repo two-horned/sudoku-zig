@@ -96,56 +96,38 @@ fn get_yar_r(mask: FastU9, i: usize) FastU9 {
 
 const EvalError = error{Unsolvable};
 
-pub const Evaluater = struct {
-    const Entry = struct { fallback: u8, show_kind: ShowKinds };
-    buffer: [81]Entry = undefined,
-
-    pub fn eval(self: *Evaluater, game: *Game) EvalError!void {
-        var level: usize = 0;
-        self.buffer[0] = .{ .fallback = undefined, .show_kind = game.showbestfree() };
-
-        while (true) {
-            const e = self.buffer[level];
-            switch (e.show_kind) {
-                .solved => return,
-                .failed => if (level == 0) {
-                    return error.Unsolvable;
-                } else {
-                    const idx = e.fallback;
+pub fn eval(game: *Game) EvalError!void {
+    const showbestfree = game.showbestfree();
+    switch (showbestfree) {
+        .solved => return,
+        .failed => return error.Unsolvable,
+        .pickidx => |ok| {
+            const idx, var cands = ok;
+            while (cands != 0) : (cands &= cands - 1) {
+                const c = @ctz(cands);
+                game.choose(idx, c);
+                if (eval(game)) |_| {
+                    return;
+                } else |_| {
                     game.unchoose(idx);
-                    level -= 1;
-                    continue;
-                },
-                .pickidx => |ok| {
-                    const idx, var candidates = ok;
-                    const c = @ctz(candidates);
-                    game.choose(idx, c);
-                    candidates &= candidates - 1;
-                    if (candidates == 0) {
-                        self.buffer[level].show_kind = .failed;
-                    } else {
-                        self.buffer[level].show_kind.pickidx.@"1" = candidates;
-                    }
-                    level += 1;
-                    self.buffer[level] = .{ .fallback = idx, .show_kind = game.showbestfree() };
-                },
-                .pickval => |ok| {
-                    const vti, var candidates = ok;
-                    const c = @ctz(candidates);
-                    const idx = game.choose_alt(vti, c);
-                    candidates &= candidates - 1;
-                    if (candidates == 0) {
-                        self.buffer[level].show_kind = .failed;
-                    } else {
-                        self.buffer[level].show_kind.pickval.@"1" = candidates;
-                    }
-                    level += 1;
-                    self.buffer[level] = .{ .fallback = @intCast(idx), .show_kind = game.showbestfree() };
-                },
+                }
             }
-        }
+        },
+        .pickval => |ok| {
+            const vti, var cands = ok;
+            while (cands != 0) : (cands &= cands - 1) {
+                const c = @ctz(cands);
+                const idx = game.choose_alt(vti, c);
+                if (eval(game)) |_| {
+                    return;
+                } else |_| {
+                    game.unchoose(idx);
+                }
+            }
+        },
     }
-};
+    return error.Unsolvable;
+}
 
 const ShowKinds = union(enum) {
     pickidx: struct { u8, FastU9 },
