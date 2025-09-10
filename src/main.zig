@@ -30,7 +30,7 @@ pub fn main() !void {
 
             mini_timer.reset();
             var game = lib.Game{};
-            inline for (0..81) |i| {
+            for (0..81) |i| {
                 switch (msg[i]) {
                     '.' => {},
                     '1'...'9' => |v| game.choose(i, v - '1'),
@@ -47,7 +47,7 @@ pub fn main() !void {
                 }
             }
             if (lib.eval(&game)) |_| {
-                inline for (0..81) |i| {
+                for (0..81) |i| {
                     game.board[i] += '1';
                 }
                 try stdout.print("Solution:    {s}\n", .{game.board});
