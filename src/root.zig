@@ -106,11 +106,11 @@ pub fn eval(game: *Game) EvalError!void {
             while (cands != 0) : (cands &= cands - 1) {
                 const c = @ctz(cands);
                 game.choose(idx, c);
-                if (eval(game)) |_| {
-                    return;
-                } else |_| {
+                eval(game) catch {
                     game.unchoose(idx);
-                }
+                    continue;
+                };
+                return;
             }
         },
         .pickval => |ok| {
@@ -118,11 +118,11 @@ pub fn eval(game: *Game) EvalError!void {
             while (cands != 0) : (cands &= cands - 1) {
                 const c = @ctz(cands);
                 const idx = game.choose_alt(vti, c);
-                if (eval(game)) |_| {
-                    return;
-                } else |_| {
+                eval(game) catch {
                     game.unchoose(idx);
-                }
+                    continue;
+                };
+                return;
             }
         },
     }
