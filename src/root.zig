@@ -143,6 +143,13 @@ pub const Game = struct {
     house_masks: [3][9]FastU9 = .{.{0x1FF} ** 9} ** 3,
     value_masks: [9][3]FastU9 = .{.{0x1FF} ** 3} ** 9,
 
+    pub fn clear(self: *Game) void {
+        self.frees = .{0x1FFFFFFFFFFFFFFFFFFFF} ** 4;
+        self.occupied = .{.{0x1FF} ** 9} ** 3;
+        self.house_masks = .{.{0x1FF} ** 9} ** 3;
+        self.value_masks = .{.{0x1FF} ** 3} ** 9;
+    }
+
     pub fn choose(self: *Game, idx: usize, val: usize) void {
         self.board[idx] = @intCast(val);
         self.update_masks(idx, val);
