@@ -3,11 +3,10 @@ const lib = @import("sudoku_lib");
 
 pub fn main() !void {
     var stdout_buf: [256]u8 = undefined;
-    var stderr_buf: [256]u8 = undefined;
     var stdin_buf: [82]u8 = undefined;
 
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
-    var stderr_writer = std.fs.File.stderr().writer(&stderr_buf);
+    var stderr_writer = std.fs.File.stderr().writer(&stdout_buf);
     var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
 
     const stdout = &stdout_writer.interface;
@@ -36,24 +35,25 @@ pub fn main() !void {
                 continue :outer_loop;
             },
         };
+
         try stdout.print("Input:       {s}\n", .{msg});
+
         if (lib.eval(&game)) {
             for (0..81) |i| game.board[i] += '1';
             try stdout.print("Solution:    {s}\n", .{game.board});
-        } else |_| {
-            try stdout.print("Game cannot be solved.\n", .{});
-        }
+        } else |_| try stdout.print("Game cannot be solved.\n", .{});
+
         const read = mini_timer.read() / std.time.ns_per_us;
         try stdout.print("Time needed: {}µs.\n\n", .{read});
         try stdout.flush();
     } else |err| switch (err) {
+        else => |e| return e,
         error.EndOfStream => break,
         error.StreamTooLong => {
             try stderr.print("Input too long\n", .{});
             try stderr.flush();
             _ = try stdin.discardDelimiterInclusive('\n');
         },
-        else => |e| return e,
     };
 
     const read = timer.read() / std.time.ns_per_ms;
