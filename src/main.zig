@@ -22,9 +22,6 @@ pub fn main() !void {
     var mini_timer = try std.time.Timer.start();
     outer_loop: while (true) : (game.clear()) {
         if (stdin.takeDelimiterInclusive('\n')) |msg| {
-            try stdout.print("Input:       {s}\n", .{msg});
-            try stdout.flush();
-
             mini_timer.reset();
             for (0..81) |i| {
                 switch (msg[i]) {
@@ -36,16 +33,15 @@ pub fn main() !void {
                         continue :outer_loop;
                     },
                     else => |c| {
-                        try stderr.print("Illegal character {c}\n", .{c});
+                        try stderr.print("Illegal character '{c}'\n", .{c});
                         try stderr.flush();
                         continue :outer_loop;
                     },
                 }
             }
-            if (lib.eval(&game)) |_| {
-                for (0..81) |i| {
-                    game.board[i] += '1';
-                }
+            try stdout.print("Input:       {s}\n", .{msg});
+            if (lib.eval(&game)) {
+                for (0..81) |i| game.board[i] += '1';
                 try stdout.print("Solution:    {s}\n", .{game.board});
             } else |_| {
                 try stdout.print("Game cannot be solved.\n", .{});
@@ -54,12 +50,12 @@ pub fn main() !void {
             try stdout.print("Time needed: {}µs.\n\n", .{read});
             try stdout.flush();
         } else |err| switch (err) {
+            error.EndOfStream => break,
             error.StreamTooLong => {
                 try stderr.print("Input too long\n", .{});
                 try stderr.flush();
                 _ = try stdin.discardDelimiterInclusive('\n');
             },
-            error.EndOfStream => break,
             else => |e| return e,
         }
     }
