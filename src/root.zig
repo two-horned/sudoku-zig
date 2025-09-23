@@ -1,41 +1,31 @@
 fn FastUInt(comptime width: usize) type {
-    const bitsOfUsize = @bitSizeOf(usize);
-    if (width <= bitsOfUsize) {
-        return usize;
-    } else {
-        const ceilLog2 = bitsOfUsize - @clz(width);
-        return switch (ceilLog2) {
-            0 => u1,
-            1 => u2,
-            2 => u4,
-            3 => u8,
-            4 => u16,
-            5 => u32,
-            6 => u64,
-            7 => u128,
-            8 => u256,
-            else => @compileError("No fast integer type found."),
-        };
-    }
+    return if (width <= @bitSizeOf(usize))
+        usize
+    else switch (@bitSizeOf(usize) - @clz(width)) {
+        else => @compileError("No fast integer type found."),
+        0 => u1,
+        1 => u2,
+        2 => u4,
+        3 => u8,
+        4 => u16,
+        5 => u32,
+        6 => u64,
+        7 => u128,
+        8 => u256,
+    };
 }
 
 const FastU9 = FastUInt(9);
 
 const lookup: [81][4]u8 = b: {
     var tmp: [81][4]u8 = undefined;
-    for (0..3) |i| {
-        for (0..3) |j| {
-            for (0..3) |k| {
-                for (0..3) |l| {
-                    const row = i * 3 + k;
-                    const col = j * 3 + l;
-                    const sqr = i * 3 + j;
-                    const ant = k * 3 + l;
-                    tmp[i * 27 + j * 3 + k * 9 + l] = .{ row, col, sqr, ant };
-                }
-            }
-        }
-    }
+    for (0..3) |i| for (0..3) |j| for (0..3) |k| for (0..3) |l| {
+        const row = i * 3 + k;
+        const col = j * 3 + l;
+        const sqr = i * 3 + j;
+        const ant = k * 3 + l;
+        tmp[i * 27 + j * 3 + k * 9 + l] = .{ row, col, sqr, ant };
+    };
     break :b tmp;
 };
 
@@ -65,17 +55,13 @@ const ray_maker: [8]FastU9 = b: {
 
 const yar_maker: [8]FastU9 = b: {
     var tmp: [8]FastU9 = .{0x1FF} ** 8;
-    for (0..8) |i| {
-        tmp[7 - i] ^= i ^ (i << 3) ^ (i << 6);
-    }
+    for (0..8) |i| tmp[7 - i] ^= i ^ (i << 3) ^ (i << 6);
     break :b tmp;
 };
 
 const mini_lookup: [9][2]u8 = b: {
     var tmp: [9][2]u8 = undefined;
-    for (0..9) |i| {
-        tmp[i] = .{ i / 3, i % 3 };
-    }
+    for (0..9) |i| tmp[i] = .{ i / 3, i % 3 };
     break :b tmp;
 };
 
