@@ -1,7 +1,7 @@
 fn FastUInt(comptime width: usize) type {
     return if (width <= @bitSizeOf(usize))
         usize
-    else switch (@bitSizeOf(usize) - @clz(width)) {
+    else switch (@bitSizeOf(usize) - @clz(width - 1)) {
         else => @compileError("No fast integer type found."),
         0 => u1,
         1 => u2,
