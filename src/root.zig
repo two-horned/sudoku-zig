@@ -17,7 +17,7 @@ fn FastUInt(comptime width: usize) type {
 
 const FastU9 = FastUInt(9);
 
-const lookup: [81][4]u8 = b: {
+const lookup = b: {
     var tmp: [81][4]u8 = undefined;
     for (0..3) |i| for (0..3) |j| for (0..3) |k| for (0..3) |l| {
         const row = i * 3 + k;
@@ -29,7 +29,7 @@ const lookup: [81][4]u8 = b: {
     break :b tmp;
 };
 
-const rev_lookup: [3][9][9]u8 = b: {
+const rev_lookup = b: {
     var tmp: [3][9][9]u8 = undefined;
     for (0..81) |idx| {
         const i, const j, const k, const l = lookup[idx];
@@ -40,7 +40,7 @@ const rev_lookup: [3][9][9]u8 = b: {
     break :b tmp;
 };
 
-const ray_maker: [8]FastU9 = b: {
+const ray_maker = b: {
     var tmp: [8]FastU9 = .{0x1FF} ** 8;
     for (0..8) |i| {
         var f = i;
@@ -53,13 +53,13 @@ const ray_maker: [8]FastU9 = b: {
     break :b tmp;
 };
 
-const yar_maker: [8]FastU9 = b: {
+const yar_maker = b: {
     var tmp: [8]FastU9 = .{0x1FF} ** 8;
     for (0..8) |i| tmp[7 - i] ^= i ^ (i << 3) ^ (i << 6);
     break :b tmp;
 };
 
-const mini_lookup: [9][2]u8 = b: {
+const mini_lookup = b: {
     var tmp: [9][2]u8 = undefined;
     for (0..9) |i| tmp[i] = .{ i / 3, i % 3 };
     break :b tmp;
