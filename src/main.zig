@@ -19,7 +19,7 @@ pub fn main() !void {
     var game = lib.Game{};
     var timer = try std.time.Timer.start();
     var mini_timer = try std.time.Timer.start();
-    outer_loop: while (true) : (game.clear()) if (stdin.takeDelimiterInclusive('\n')) |msg| {
+    outer_loop: while (true) : (game = lib.Game{}) if (stdin.takeDelimiterInclusive('\n')) |msg| {
         mini_timer.reset();
         for (0..81) |i| switch (msg[i]) {
             '.' => {},
