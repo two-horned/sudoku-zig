@@ -211,9 +211,12 @@ pub const Game = struct {
 
         return self.occupied[ht][hi] &
             switch (ht) {
-                0 => self.value_masks[val][1] & get_ray_r(self.value_masks[val][2], rwhi),
-                1 => self.value_masks[val][0] & get_ray_c(self.value_masks[val][2], rwhi),
-                2 => get_ray_r(self.value_masks[val][0], rwhi) & get_yar_r(self.value_masks[val][1], clhi),
+                0 => self.value_masks[val][1] &
+                    get_ray_r(self.value_masks[val][2], rwhi),
+                1 => self.value_masks[val][0] &
+                    get_ray_c(self.value_masks[val][2], rwhi),
+                2 => get_ray_r(self.value_masks[val][0], rwhi) &
+                    get_yar_r(self.value_masks[val][1], clhi),
                 else => unreachable,
             };
     }
