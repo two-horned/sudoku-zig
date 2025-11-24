@@ -1,0 +1,30 @@
+* Sudoku Solver
+This is a Sudoku solver written in Zig.
+
+** Building
+The solver can be build with a simple zig command. The required Zig version is ~0.15.1~.
+#+begin_src sh
+  zig build --release=fast
+#+end_src
+
+The binary is then located at ~./zig-out/bin/sudoku~.
+
+** Running
+Each Sudoku puzzle is represented by a single line of 81 characters.
+These characters represent the cells in the Sudoku grid. If a value
+is set, write respective character =[1-9]= at its position.
+If a cell is empty, we indicate this by writing a dot =[.]= symbol.
+
+These puzzles can then be passed into =stdin=, for example via by ~cat~-ing
+file contents or ~echo~-ing the puzzle.
+#+begin_src sh
+  # Solving a single puzzle with the echo command
+  echo "..43..2.9..5..9..1.7..6..43..6..2.8719...74...5..83...6.....1.5..35.869..4291.3.." | ./zig-out/bin/sudoku
+  # Solving a bunch of puzzles written in a file
+  cat ./puzzle-file | ./zig-out/bin/sudoku
+#+end_src
+
+You can also type the puzzles directly into the program, one-by-one.
+#+begin_src sh
+  ./zig-out/sudoku
+#+end_src
